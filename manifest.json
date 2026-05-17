@@ -6,9 +6,9 @@
   "packageName": "com.sweepstake.wc2026",
   "developer": {
     "name": "Flock Sweepstake",
-    "websiteUrl": "https://flockworldcup.netlify.app",
-    "privacyUrl": "https://flockworldcup.netlify.app",
-    "termsOfUseUrl": "https://flockworldcup.netlify.app"
+    "websiteUrl": "https://elcuntino2026.netlify.app",
+    "privacyUrl": "https://elcuntino2026.netlify.app",
+    "termsOfUseUrl": "https://elcuntino2026.netlify.app"
   },
   "name": {
     "short": "WC26 Sweepstake",
@@ -27,14 +27,14 @@
     {
       "entityId": "sweepstake",
       "name": "WC26 Sweepstake",
-      "contentUrl": "https://flockworldcup.netlify.app/index.html",
-      "websiteUrl": "https://flockworldcup.netlify.app/index.html",
+      "contentUrl": "https://elcuntino2026.netlify.app/index.html",
+      "websiteUrl": "https://elcuntino2026.netlify.app/index.html",
       "scopes": [
         "personal"
       ]
     }
   ],
   "validDomains": [
-    "flockworldcup.netlify.app"
+    "elcuntino2026.netlify.app"
   ]
 }
