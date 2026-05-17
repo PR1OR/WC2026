@@ -75,8 +75,8 @@ Both launch fullscreen, no browser chrome.
 
 ## Passwords
 
-- Draw app organiser login: `wc2026draw`
-- Fixtures app organiser login: `wc2026admin`
+- Draw app organiser login: `a`
+- Fixtures app organiser login: `a`
 
 To change either, open the relevant HTML file and search for the password text.
 
