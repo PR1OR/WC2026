@@ -1,0 +1,9 @@
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self' 'unsafe-eval' 'unsafe-inline' https: data:; connect-src *; font-src 'self' https://fonts.gstatic.com"
+    Cache-Control = "public, max-age=0, must-revalidate"
