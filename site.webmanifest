@@ -1,6 +1,6 @@
 {
-  "name": "World Cup 2026 Sweepstake",
-  "short_name": "WC26 Draw",
+  "name": "World Cup 2026",
+  "short_name": "World Cup 2026",
   "description": "World Cup 2026 sweepstake draw and live standings",
   "icons": [
     { "src": "color.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" }
