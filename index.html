@@ -472,6 +472,7 @@ function App(){
   const applyCloudStateRef=useRef(null);
   const demoKoRef=useRef(null);
   const lastPushed=useRef(null);
+  const lastPushedStateTsRef=useRef(0);
   const timersRef=useRef([]);
   const drawStartTimeRef=useRef(null);
   const drawWatchedRef=useRef(false);
@@ -612,9 +613,11 @@ function App(){
     const key=CLOUD_KEY||(cloudCfg.key||"");
     if(!binId||!key)return;
     try{
-      const full={pushSubs:pushSubsRef.current,...patch};
+      const ts=Date.now();
+      const full={pushSubs:pushSubsRef.current,stateTs:ts,...patch};
       const str=JSON.stringify(full);
       lastPushed.current=str;
+      lastPushedStateTsRef.current=ts;
       await fetch(`${BIN_URL}/${binId}`,{
         method:"PUT",headers:{"Content-Type":"application/json","X-Master-Key":key,"X-Bin-Versioning":"false"},
         body:str
@@ -648,8 +651,10 @@ function App(){
 
   const applyCloudState=(data)=>{
     if(!data)return;
+    if(data.stateTs && data.stateTs <= lastPushedStateTsRef.current) return;
     // Ignore stale/reset cloud draw state while a local draw animation is still active.
     if(Date.now() < cloudIgnoreUntilRef.current && data.drawData===null && screen==="drawing")return;
+    if(data.drawData===null && !data.stateTs && drawNames.length) return;
     // If this is data we just pushed ourselves, ignore it completely
     const incoming=JSON.stringify(data);
     if(incoming===lastPushed.current)return;
