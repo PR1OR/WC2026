@@ -658,6 +658,10 @@ function App(){
     // Ignore stale/reset cloud draw state while a local draw animation is still active.
     if(Date.now() < cloudIgnoreUntilRef.current && data.drawData===null && screen==="drawing")return;
     if(data.drawData===null && !data.stateTs && drawNames.length) return;
+    if(data.drawData===null && saved){
+      pushCloud(buildCloudPayload({drawMode:"done"})).catch(()=>{});
+      return;
+    }
     // If this is data we just pushed ourselves, ignore it completely
     const incoming=JSON.stringify(data);
     if(incoming===lastPushed.current)return;
