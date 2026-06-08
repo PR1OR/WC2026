@@ -509,10 +509,11 @@ function App(){
     clearTimers();const names=[...participants];const assignments=createAssignments(names);const sequence=buildSequence(names,assignments);
     const dst=Date.now();drawStartTimeRef.current=dst;drawWatchedRef.current=true;
     setDrawNames(names);setDrawAssignments(assignments);setCurParticipant(null);setRevealedTeams([]);setParticipantZoom(null);setScreen("drawing");
-    cloudIgnoreUntilRef.current=Date.now()+15000;
+    const DRAW_DELAY=20000;
+    const finalStepAt=sequence[sequence.length-1]?.at||0;
+    cloudIgnoreUntilRef.current=Date.now()+DRAW_DELAY+finalStepAt+5000;
     pushCloud({drawMode:"drawing",drawStartTime:dst,drawDate,drawData:{names,assignments},scores,koData,photos:teamPhotos,losses});
     sendWebPush("🎰 The draw has started!","Open the app now to watch the World Cup 2026 sweepstake draw live");
-    const DRAW_DELAY=20000;
     let r=20;setDrawCountdown(r);
     countdownRef.current=setInterval(()=>{r--;if(r<=0){clearInterval(countdownRef.current);countdownRef.current=null;setDrawCountdown(null);}else{setDrawCountdown(r);}},1000);
     sequence.forEach(step=>{const t=setTimeout(()=>{
@@ -647,6 +648,7 @@ function App(){
 
   const applyCloudState=(data)=>{
     if(!data)return;
+    // Ignore stale/reset cloud draw state while a local draw animation is still active.
     if(Date.now() < cloudIgnoreUntilRef.current && data.drawData===null && screen==="drawing")return;
     // If this is data we just pushed ourselves, ignore it completely
     const incoming=JSON.stringify(data);
