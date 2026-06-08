@@ -603,8 +603,9 @@ function App(){
     const n={...p,[key]:val};try{localStorage.setItem("wc26_scores",JSON.stringify(n))}catch{};return n;
   })};
   const triggerIcing=(alert)=>{const nl=[...losses,alert];setLosses(nl);try{localStorage.setItem("wc26_losses",JSON.stringify(nl))}catch{};if(!icingSeenRef.current.has(alert.ts)){icingSeenRef.current.add(alert.ts);setIcingAlerts(prev=>[...prev,alert])}};
-  const handlePhotoUpload=(name,file)=>{if(!file)return;resizeImage(file).then(dataUrl=>{const p={...teamPhotos,[name]:dataUrl};setTeamPhotos(p);try{localStorage.setItem("wc26_photos",JSON.stringify(p))}catch{};pushCloud({drawDate,drawData:drawNames.length?{names:drawNames,assignments:drawAssignments}:null,scores,koData,photos:p,losses})});};
+  const handlePhotoUpload=(name,file)=>{if(!file)return;resizeImage(file).then(dataUrl=>{const p={...teamPhotos,[name]:dataUrl};setTeamPhotos(p);try{localStorage.setItem("wc26_photos",JSON.stringify(p))}catch{};pushCloud(buildCloudPayload({photos:p}));});};
 
+  const buildCloudPayload=(extra={})=>{const data={drawDate,scores,koData,photos:teamPhotos,losses,...extra};if(drawNames.length){data.drawData={names:drawNames,assignments:drawAssignments}}return data};
 
   const BIN_URL="https://api.jsonbin.io/v3/b";
 
@@ -613,8 +614,9 @@ function App(){
     const key=CLOUD_KEY||(cloudCfg.key||"");
     if(!binId||!key)return;
     try{
+      const current=await pullCloud().catch(()=>null) || {};
       const ts=Date.now();
-      const full={pushSubs:pushSubsRef.current,stateTs:ts,...patch};
+      const full={...current,...patch,pushSubs:pushSubsRef.current,stateTs:ts};
       const str=JSON.stringify(full);
       lastPushed.current=str;
       lastPushedStateTsRef.current=ts;
@@ -829,7 +831,7 @@ function App(){
           <div style={{width:"100%",maxWidth:"460px",background:"rgba(240,192,64,.05)",border:"1px solid rgba(240,192,64,.15)",borderRadius:"10px",padding:"14px 16px",marginBottom:"20px"}}>
             <div style={{fontSize:"11px",letterSpacing:"2px",textTransform:"uppercase",color:GOLD,opacity:.8,marginBottom:"8px"}}>Set Draw Date and Time</div>
             <input type="datetime-local" value={drawDate}
-              onChange={e=>{const v=e.target.value;setDrawDate(v);try{localStorage.setItem("wc26_draw_date",v)}catch{};pushCloud({drawDate:v,drawData:drawNames.length?{names:drawNames,assignments:drawAssignments}:null,scores,koData})}}
+              onChange={e=>{const v=e.target.value;setDrawDate(v);try{localStorage.setItem("wc26_draw_date",v)}catch{};pushCloud(buildCloudPayload({drawDate:v}))}}
               style={{width:"100%",background:"rgba(255,255,255,.07)",border:"1px solid rgba(240,192,64,.25)",borderRadius:"6px",padding:"9px 12px",color:"#fff",fontSize:".95rem",fontFamily:"inherit"}}/>
             {drawDate?(
               <div style={{marginTop:"10px",padding:"10px 12px",background:"rgba(125,219,80,.07)",border:"1px solid rgba(125,219,80,.25)",borderRadius:"8px",display:"flex",flexDirection:"column",gap:"3px"}}>
@@ -886,7 +888,7 @@ function App(){
             </div>
             {CLOUD_BIN&&(
               <button onClick={()=>{
-                const data={drawDate,drawData:drawNames.length?{names:drawNames,assignments:drawAssignments}:null,scores,koData,photos:teamPhotos,losses};
+                const data=buildCloudPayload();
                 pushCloud(data).then(()=>{setCloudStatus("synced");setTimeout(()=>setCloudStatus(""),3000)}).catch(()=>setCloudStatus("offline"));
                 setCloudStatus("syncing");
               }}
@@ -1116,7 +1118,7 @@ function App(){
               const allNew=allLosses.filter(l=>l.owner===currentUser&&l.ts&&!icingSeenRef.current.has(l.ts));
               if(allNew.length>0){allNew.forEach(l=>icingSeenRef.current.add(l.ts));setIcingAlerts(prev=>{const ex=new Set(prev.map(a=>a.ts));return[...prev,...allNew.filter(a=>!ex.has(a.ts))]});allNew.forEach(l=>sendNotif(`💀 ${l.loser} just lost!`,l.matchDesc));}
               combined.forEach(l=>sendWebPush(`💀 ${l.loser} eliminated!`,`${l.owner}'s team ${l.loser} is out — ${l.matchDesc||""}`));
-              const data={drawDate,drawData:drawNames.length?{names:drawNames,assignments:drawAssignments}:null,scores,koData,photos:teamPhotos,losses:allLosses};
+              const data=buildCloudPayload({losses:allLosses});
               pushCloud(data).then(()=>{setCloudStatus("synced");setTimeout(()=>setCloudStatus(""),3000)}).catch(()=>setCloudStatus("offline"));setCloudStatus("syncing");
             }}
               style={{background:"linear-gradient(135deg,rgba(100,180,255,.28),rgba(100,180,255,.14))",border:"1px solid rgba(100,180,255,.35)",borderRadius:"8px",padding:"8px 18px",fontFamily:"'Bebas Neue',sans-serif",fontSize:".9rem",letterSpacing:"2px",color:"rgba(100,180,255,.9)",cursor:"pointer",whiteSpace:"nowrap"}}>
