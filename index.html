@@ -475,6 +475,7 @@ function App(){
   const timersRef=useRef([]);
   const drawStartTimeRef=useRef(null);
   const drawWatchedRef=useRef(false);
+  const cloudIgnoreUntilRef=useRef(0);
   const[drawCountdown,setDrawCountdown]=useState(null);
   const countdownRef=useRef(null);
   const pushSubsRef=useRef([]);
@@ -508,6 +509,7 @@ function App(){
     clearTimers();const names=[...participants];const assignments=createAssignments(names);const sequence=buildSequence(names,assignments);
     const dst=Date.now();drawStartTimeRef.current=dst;drawWatchedRef.current=true;
     setDrawNames(names);setDrawAssignments(assignments);setCurParticipant(null);setRevealedTeams([]);setParticipantZoom(null);setScreen("drawing");
+    cloudIgnoreUntilRef.current=Date.now()+15000;
     pushCloud({drawMode:"drawing",drawStartTime:dst,drawDate,drawData:{names,assignments},scores,koData,photos:teamPhotos,losses});
     sendWebPush("🎰 The draw has started!","Open the app now to watch the World Cup 2026 sweepstake draw live");
     const DRAW_DELAY=20000;
@@ -645,6 +647,7 @@ function App(){
 
   const applyCloudState=(data)=>{
     if(!data)return;
+    if(Date.now() < cloudIgnoreUntilRef.current && data.drawData===null && screen==="drawing")return;
     // If this is data we just pushed ourselves, ignore it completely
     const incoming=JSON.stringify(data);
     if(incoming===lastPushed.current)return;
