@@ -913,7 +913,7 @@ function App(){
           </div>
 
           <div style={{display:"flex",gap:"12px",flexWrap:"wrap",justifyContent:"center",marginBottom:"22px"}}>
-            {[["Players",`${participants.length} / 24`],["Teams Each",participants.length>0?(48%participants.length===0?`${48/participants.length}`:`${Math.floor(48/participants.length)}-${Math.ceil(48/participants.length)}`):"—"],["Prize Pool",`£${participants.length*20}`],["1st Prize",`£${Math.max(0,participants.length*20-20)}`]].map(([l,v])=>(
+            {[["Players",`${participants.length} / 24`],["Teams Each",participants.length>0?(48%participants.length===0?`${48/participants.length}`:`${Math.floor(48/participants.length)}-${Math.ceil(48/participants.length)}`):"—"],["Prize Pool",`£${participants.length*5}`],["1st Prize",`£${Math.max(0,participants.length*5-5)}`]].map(([l,v])=>(
               <div key={l} style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(240,192,64,.14)",borderRadius:"10px",padding:"14px 20px",textAlign:"center",minWidth:"100px"}}>
                 <div style={{fontSize:"11px",letterSpacing:"2px",textTransform:"uppercase",color:GOLD,marginBottom:"4px",opacity:.8}}>{l}</div>
                 <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.9rem",lineHeight:1}}>{v}</div>
@@ -1200,7 +1200,7 @@ function App(){
                   </div>
                   <div style={{background:"rgba(0,0,0,.35)",borderRadius:"12px",padding:"12px 15px",textAlign:"center",flexShrink:0}}>
                     <div style={{fontSize:".58rem",letterSpacing:"3px",color:"rgba(255,255,255,.3)",textTransform:"uppercase"}}>Top Prize</div>
-                    <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"2rem",color:GOLD,lineHeight:1}}>£{Math.max(0,drawNames.length*20-20)}</div>
+                    <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"2rem",color:GOLD,lineHeight:1}}>£{Math.max(0,drawNames.length*5-5)}</div>
                     <div style={{fontSize:".58rem",color:"rgba(255,255,255,.28)",marginTop:"1px"}}>WC winner's team</div>
                   </div>
                 </div>
@@ -1345,19 +1345,19 @@ function App(){
               <div style={{textAlign:"center",marginBottom:"22px",paddingTop:"4px"}}>
                 <div style={{fontSize:"2.8rem",marginBottom:"4px"}}>🏆</div>
                 <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(1.8rem,6vw,2.8rem)",color:GOLD,letterSpacing:"4px"}}>WC 2026 Sweepstake</div>
-                <div style={{color:"rgba(255,255,255,.38)",fontSize:".82rem",marginTop:"3px"}}>{drawNames.length} players · £{drawNames.length*20} prize pool</div>
+                <div style={{color:"rgba(255,255,255,.38)",fontSize:".82rem",marginTop:"3px"}}>{drawNames.length} players · £{drawNames.length*5} prize pool</div>
               </div>
 
               <div style={{display:"flex",gap:"10px",justifyContent:"center",marginBottom:"20px",flexWrap:"wrap"}}>
                 <div style={{background:"linear-gradient(135deg,rgba(240,192,64,.12),rgba(240,192,64,.05))",border:"1px solid rgba(240,192,64,.22)",borderRadius:"12px",padding:"13px 18px",textAlign:"center",minWidth:"120px"}}>
                   <div style={{fontSize:"1.2rem",marginBottom:"2px"}}>🥇</div>
                   <div style={{fontSize:".58rem",letterSpacing:"2px",color:"rgba(255,255,255,.38)",textTransform:"uppercase",marginBottom:"2px"}}>1st Place</div>
-                  <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"2rem",color:GOLD,lineHeight:1}}>£{Math.max(0,drawNames.length*20-20)}</div>
+                  <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"2rem",color:GOLD,lineHeight:1}}>£{Math.max(0,drawNames.length*5-5)}</div>
                 </div>
                 <div style={{background:"rgba(176,196,222,.06)",border:"1px solid rgba(176,196,222,.16)",borderRadius:"12px",padding:"13px 18px",textAlign:"center",minWidth:"120px"}}>
                   <div style={{fontSize:"1.2rem",marginBottom:"2px"}}>🥈</div>
                   <div style={{fontSize:".58rem",letterSpacing:"2px",color:"rgba(255,255,255,.38)",textTransform:"uppercase",marginBottom:"2px"}}>2nd Place</div>
-                  <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"2rem",color:"#b0c4de",lineHeight:1}}>£20</div>
+                  <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"2rem",color:"#b0c4de",lineHeight:1}}>£5</div>
                 </div>
               </div>
 
