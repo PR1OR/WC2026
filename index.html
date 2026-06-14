@@ -1319,7 +1319,7 @@ function App(){
                   <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(105px,1fr))",gap:"9px"}}>
                     {myTeams.map(team=>{
                       const st=getTeamStanding(team.name,scores);
-                      const isOut=losses.some(l=>l.loser===team.name);
+                      const isOut=losses.some(l=>l.loser===team.name&&!l.matchKey);
                       const advancing=st&&st.pos<=2&&st.p>0;
                       const ordinal=n=>n===1?"st":n===2?"nd":n===3?"rd":"th";
                       return(
