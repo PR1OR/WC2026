@@ -208,6 +208,21 @@ function Top16Interactive({ko,onSave,isAdmin,ownerMap,scores,onIcing}){
   const TH=640;
   const adv=useMemo(()=>getAdvancing(scores),[scores]);const done=useMemo(()=>Object.keys(scores).length>=72,[scores]);
   const tl=adv.map(t=>t.name||t.n).filter(Boolean);
+  // All hooks must run on every render — declaring them after the early returns
+  // below made React throw #310 (hook count changed) whenever setupMode or ko flipped.
+  const containerRef=useRef(null);const bracketRef=useRef(null);
+  const[bScale,setBScale]=useState(1);
+  useEffect(()=>{
+    const calc=()=>{
+      if(!containerRef.current||!bracketRef.current)return;
+      const cw=containerRef.current.offsetWidth;
+      const bw=bracketRef.current.scrollWidth;
+      setBScale(bw>cw?Math.max(0.38,cw/bw):1);
+    };
+    const t=setTimeout(calc,120);
+    window.addEventListener("resize",calc);
+    return()=>{clearTimeout(t);window.removeEventListener("resize",calc)};
+  },[ko]);
 
   const doResult=(rnd,idx,s1,s2)=>{
     const m=rnd==="final"||rnd==="third"?ko[rnd]:ko[rnd][idx];
@@ -228,21 +243,10 @@ function Top16Interactive({ko,onSave,isAdmin,ownerMap,scores,onIcing}){
 
   if(!ko)return(<div style={{textAlign:"center",padding:"48px 20px"}}><div style={{fontSize:"2rem",marginBottom:"12px",opacity:.5}}>🏟️</div><div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.3rem",color:GOLD,letterSpacing:"3px",marginBottom:"8px"}}>{done?"Group Stage Complete":"Bracket Not Set Up Yet"}</div><div style={{color:"rgba(255,255,255,.45)",fontSize:".9rem",marginBottom:"18px"}}>{done?`${tl.length} teams have qualified for the Round of 32`:"Run the demo to Stage 3 or complete the group stage first"}</div>{isAdmin&&(done||true)?<button onClick={()=>setSetupMode(true)} style={{background:`linear-gradient(135deg,${GOLD},#c89a10)`,border:"none",borderRadius:"10px",padding:"13px 36px",fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.4rem",letterSpacing:"3px",color:"#070c14",cursor:"pointer"}}>Set Up Knockout Bracket</button>:null}</div>);
 
+  // Fill in any rounds missing from older/partial cloud payloads so slicing below can't crash
+  ko={...JSON.parse(JSON.stringify(EKO)),...ko};
   const RL=[{d:ko.r32.slice(0,8),l:"R32",k:"r32",s:0},{d:ko.r16.slice(0,4),l:"R16",k:"r16",s:0},{d:ko.qf.slice(0,2),l:"QF",k:"qf",s:0},{d:ko.sf.slice(0,1),l:"SF",k:"sf",s:0}];
   const RR=[{d:ko.sf.slice(1,2),l:"SF",k:"sf",s:1},{d:ko.qf.slice(2,4),l:"QF",k:"qf",s:2},{d:ko.r16.slice(4,8),l:"R16",k:"r16",s:4},{d:ko.r32.slice(8,16),l:"R32",k:"r32",s:8}];
-  const containerRef=useRef(null);const bracketRef=useRef(null);
-  const[bScale,setBScale]=useState(1);
-  useEffect(()=>{
-    const calc=()=>{
-      if(!containerRef.current||!bracketRef.current)return;
-      const cw=containerRef.current.offsetWidth;
-      const bw=bracketRef.current.scrollWidth;
-      setBScale(bw>cw?Math.max(0.38,cw/bw):1);
-    };
-    const t=setTimeout(calc,120);
-    window.addEventListener("resize",calc);
-    return()=>{clearTimeout(t);window.removeEventListener("resize",calc)};
-  },[ko]);
 
   return(<div>
     {ko.champion&&<div style={{textAlign:"center",marginBottom:"18px"}}><div style={{display:"inline-block",background:"linear-gradient(135deg,#c89a10,#f0c040)",borderRadius:"12px",padding:"12px 28px",color:"#070c14"}}><div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:".85rem",letterSpacing:"4px"}}>Champion</div><div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"2rem",letterSpacing:"2px"}}>{ko.champion}</div>{ownerMap[ko.champion]&&<div style={{fontSize:".8rem",opacity:.8}}>Held by {ownerMap[ko.champion]}</div>}</div></div>}
@@ -269,13 +273,14 @@ const EKO={r32:Array.from({length:16},(_,i)=>emK(i)),r16:Array.from({length:8},(
 
 function KSlot({name,flag,owner,win,score}){return(<div style={{display:"flex",alignItems:"center",gap:"4px",padding:"3px 6px",minHeight:"28px",background:win?"rgba(240,192,64,.12)":"transparent",borderBottom:"1px solid rgba(255,255,255,.06)"}}>{name?<><span style={{fontSize:".85rem",flexShrink:0}}>{flag}</span><div style={{flex:1,minWidth:0}}><div style={{fontSize:".7rem",color:win?GOLD:"rgba(255,255,255,.85)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontWeight:win?600:400}}>{name}</div>{owner&&<div style={{fontSize:".6rem",color:GOLD,opacity:.75}}>{owner}</div>}</div>{score!==""&&<div style={{fontSize:".9rem",fontFamily:"'Bebas Neue',sans-serif",color:win?GOLD:"rgba(255,255,255,.6)",minWidth:"14px",textAlign:"center",flexShrink:0}}>{score}</div>}</>:<div style={{fontSize:".68rem",color:"rgba(255,255,255,.2)",flex:1}}>TBD</div>}</div>)}
 
-function KMatch({m,editable,onClick}){const has=m.t1&&m.t2;const hs=m.s1!==""&&m.s2!=="";return(<div onClick={editable&&has?onClick:undefined} style={{width:"152px",border:`1px solid rgba(255,255,255,${hs?".22":".1"})`,borderRadius:"6px",overflow:"hidden",background:"#0a1628",flexShrink:0,cursor:editable&&has?"pointer":"default"}}><KSlot name={m.t1} flag={m.f1} owner={m.o1} win={hs&&m.w===m.t1} score={hs?m.s1:""}/><KSlot name={m.t2} flag={m.f2} owner={m.o2} win={hs&&m.w===m.t2} score={hs?m.s2:""}/></div>)}
+function KMatch({m,editable,onClick}){m=m||{};const has=m.t1&&m.t2;const hs=(m.s1??"")!==""&&(m.s2??"")!=="";return(<div onClick={editable&&has?onClick:undefined} style={{width:"152px",border:`1px solid rgba(255,255,255,${hs?".22":".1"})`,borderRadius:"6px",overflow:"hidden",background:"#0a1628",flexShrink:0,cursor:editable&&has?"pointer":"default"}}><KSlot name={m.t1} flag={m.f1} owner={m.o1} win={hs&&m.w===m.t1} score={hs?m.s1:""}/><KSlot name={m.t2} flag={m.f2} owner={m.o2} win={hs&&m.w===m.t2} score={hs?m.s2:""}/></div>)}
 
 function KCol({matches,totalH,side,label,editable,onM}){const n=matches.length;const mh=totalH/n;return(<div style={{flexShrink:0}}><div style={{textAlign:"center",fontFamily:"'Bebas Neue',sans-serif",fontSize:".7rem",color:GOLD,letterSpacing:"2px",padding:"0 4px 6px"}}>{label}</div><div style={{height:`${totalH}px`,display:"flex",flexDirection:"column"}}>{matches.map((m,i)=>(<div key={m.id!==undefined?m.id:i} style={{height:`${mh}px`,display:"flex",alignItems:"center",justifyContent:side==="right"?"flex-start":"flex-end",padding:"0 4px"}}><KMatch m={m} editable={editable} onClick={()=>onM&&onM(i)}/></div>))}</div></div>)}
 
 function Top16View({ko,champion}){
   if(!ko)return(<div style={{textAlign:"center",padding:"60px 20px",color:"rgba(255,255,255,.3)"}}><div style={{fontSize:"2.5rem",marginBottom:"12px",opacity:.4}}>🏆</div><div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.2rem",letterSpacing:"3px",marginBottom:"6px"}}>Knockout bracket not set up yet</div><div style={{fontSize:".85rem"}}>Run the demo to Stage 3 or use the Fixtures app to set it up</div></div>);
   const TH=640;
+  ko={...JSON.parse(JSON.stringify(EKO)),...ko};
   const RL=[{d:ko.r32.slice(0,8),l:"R32",k:"r32"},{d:ko.r16.slice(0,4),l:"R16",k:"r16"},{d:ko.qf.slice(0,2),l:"QF",k:"qf"},{d:ko.sf.slice(0,1),l:"SF",k:"sf"}];
   const RR=[{d:ko.sf.slice(1,2),l:"SF",k:"sf"},{d:ko.qf.slice(2,4),l:"QF",k:"qf"},{d:ko.r16.slice(4,8),l:"R16",k:"r16"},{d:ko.r32.slice(8,16),l:"R32",k:"r32"}];
   return(<div>
@@ -597,7 +602,14 @@ function App(){
 
   const teamOwnerMap=useMemo(()=>{const map={};Object.entries(drawAssignments).forEach(([p,teams])=>{(teams||[]).forEach(t=>{map[t.name]=p})});return map},[drawAssignments]);
 
-  const saveKo=(data)=>{setKoData(data);try{localStorage.setItem("wc26_ko",data?JSON.stringify(data):null)}catch{}};
+  const saveKo=(data)=>{
+    setKoData(data);
+    try{localStorage.setItem("wc26_ko",data?JSON.stringify(data):null)}catch{};
+    // Mark this device's state as newest before the async push, so a 20s poll
+    // that lands mid-push can't revert the bracket to the older cloud copy.
+    lastPushedStateTsRef.current=Date.now();
+    pushCloud(buildCloudPayload({koData:data}));
+  };
   const handleScore=(key,val)=>{setScores(p=>{
     // group stage score changes don't trigger icing
     const n={...p,[key]:val};try{localStorage.setItem("wc26_scores",JSON.stringify(n))}catch{};return n;
@@ -605,7 +617,10 @@ function App(){
   const triggerIcing=(alert)=>{const nl=[...losses,alert];setLosses(nl);try{localStorage.setItem("wc26_losses",JSON.stringify(nl))}catch{};if(!icingSeenRef.current.has(alert.ts)){icingSeenRef.current.add(alert.ts);setIcingAlerts(prev=>[...prev,alert])}};
   const handlePhotoUpload=(name,file)=>{if(!file)return;resizeImage(file).then(dataUrl=>{const p={...teamPhotos,[name]:dataUrl};setTeamPhotos(p);try{localStorage.setItem("wc26_photos",JSON.stringify(p))}catch{};pushCloud(buildCloudPayload({photos:p}));});};
 
-  const buildCloudPayload=(extra={})=>{const data={drawDate,scores,koData,photos:teamPhotos,losses,...extra};if(drawNames.length){data.drawData={names:drawNames,assignments:drawAssignments}}return data};
+  // koData is omitted when this device has no bracket, so a publish from a device
+  // that never received it can't null the bracket out for everyone. An intentional
+  // reset passes koData:null explicitly via extra.
+  const buildCloudPayload=(extra={})=>{const data={drawDate,scores,photos:teamPhotos,losses,...(koData?{koData}:{}),...extra};if(drawNames.length){data.drawData={names:drawNames,assignments:drawAssignments}}return data};
 
   const BIN_URL="https://api.jsonbin.io/v3/b";
 
@@ -1505,7 +1520,22 @@ function App(){
     </>
   );
 }
-ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+class ErrorBoundary extends React.Component{
+  constructor(props){super(props);this.state={err:null}}
+  static getDerivedStateFromError(err){return{err}}
+  componentDidCatch(err,info){console.error("App render crashed:",err,info)}
+  render(){
+    if(this.state.err)return(
+      <div style={{minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:"14px",background:BG,color:"#fff",textAlign:"center",padding:"30px",fontFamily:"'Barlow',sans-serif"}}>
+        <div style={{fontSize:"2.2rem"}}>⚠️</div>
+        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.6rem",color:GOLD,letterSpacing:"3px"}}>Something Went Wrong</div>
+        <div style={{color:"rgba(255,255,255,.5)",fontSize:".9rem",maxWidth:"420px"}}>The app hit an unexpected error. Your draw and scores are safe — reload to carry on.</div>
+        <button onClick={()=>window.location.reload()} style={{background:`linear-gradient(135deg,${GOLD},#c89a10)`,border:"none",borderRadius:"10px",padding:"12px 34px",fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.2rem",letterSpacing:"3px",color:"#070c14",cursor:"pointer"}}>Reload</button>
+      </div>);
+    return this.props.children;
+  }
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<ErrorBoundary><App/></ErrorBoundary>);
 </script>
 </body>
 </html>
